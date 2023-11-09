@@ -1,4 +1,4 @@
-# S3 Version Cleanup Script
+# Universal S3 File Version Pruner Script
 
 This script is designed to clean up non-current (older) versions of objects within a specific prefix in an S3-compatible storage bucket. This can be helpful if you're using versioning in your bucket and want to remove outdated versions of files to save on storage costs.
 
@@ -29,5 +29,5 @@ If you encounter any issues with AWS CLI version 1, consider upgrading to versio
 To run the script, simply execute it in your terminal:
 
 ```bash
-chmod +x s3_cleanup_script.sh
-./s3_cleanup_script.sh
+chmod +x s3prune.sh
+./s3prune.sh
