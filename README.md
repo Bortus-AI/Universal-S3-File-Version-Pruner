@@ -4,7 +4,7 @@ This script is designed to clean up non-current (older) versions of objects with
 
 ## Prerequisites
 
-- AWS CLI installed and configured
+- AWS CLI v2 installed and configured
 - jq installed (for parsing JSON)
 
 ## Usage
