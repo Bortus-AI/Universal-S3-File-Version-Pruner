@@ -7,7 +7,7 @@ This script is designed to clean up non-current (older) versions of objects with
 - AWS CLI v2 installed and configured (for S3-compatible services)
 - jq installed (for parsing JSON)
 
-## Compatibility
+## S3 Compatibility
 
 This script has been tested with Backblaze B2, an S3-compatible storage service. While it is specifically designed for Backblaze B2, it should work with other S3-compatible storage services as well. However, compatibility with other services has not been tested.
 
