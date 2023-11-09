@@ -1,6 +1,6 @@
 # Universal S3 File Version Pruner Script
 
-This script is designed to clean up non-current (older) versions of objects within a specific prefix in an S3-compatible storage bucket. This can be helpful if you're using versioning in your bucket and want to remove outdated versions of files to save on storage costs.
+The purpose of this script is to streamline the management of your S3-compatible storage buckets by automating the cleanup of non-current (older) versions of files. Specifically targeting files with a designated prefix, it is an essential tool for optimizing storage space and reducing costs—particularly useful for services like Backblaze B2, where version control cannot be fully disabled. By purging outdated file versions, the script ensures a more efficient and cost-effective data storage solution.
 
 
 ### **Disclaimer: Always test scripts like this in a safe environment before running them on production data to prevent accidental data loss.**
