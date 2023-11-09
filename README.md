@@ -2,6 +2,8 @@
 
 This script is designed to clean up non-current (older) versions of objects within a specific prefix in an S3-compatible storage bucket. This can be helpful if you're using versioning in your bucket and want to remove outdated versions of files to save on storage costs.
 
+### **Disclaimer: Always test scripts like this in a safe environment before running them on production data to prevent accidental data loss.**
+
 ## Prerequisites
 
 - AWS CLI v2 installed and configured (for S3-compatible services)
@@ -35,7 +37,7 @@ chmod +x s3prune.sh
 
 ## Contributing
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are greatly appreciated.
 
 If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
 
