@@ -1,25 +1,38 @@
-# Universal S3 File Version Pruner
+# Universal S3 File Version Pruner 
+
+[![License](https://img.shields.io/github/license/navyfighter12/S3Prune-UniversalFileVersionTool?label=license&style=flat-square)](LICENSE)
 
 ## Introduction
 
 This utility script manages and deletes old versions of objects in an S3-compatible bucket. It is specifically designed for situations where versioning control cannot be disabled, such as with Backblaze B2. This script helps you delete versions more frequently than the default settings, aiding in better management of your storage space.
 
-## Contents
+## Table of Contents
 
 - [Introduction](#introduction)
+- [Benefits](#benefits)
+- [Disclaimer](#disclaimer)
 - [Prerequisites](#prerequisites)
-- [**Disclaimer**](#disclaimer)
-- [Installing AWS CLI v2](#installing-aws-cli-v2)
-- [Installing jq](#installing-jq)
+  - [Installing AWS CLI v2](#installing-aws-cli-v2)
+  - [Installing jq](#installing-jq)
 - [Downloading the Script](#downloading-the-script)
 - [Usage](#usage)
+  - [Configuration](#configuration)
   - [Interactive Mode](#interactive-mode)
   - [Unattended Mode](#unattended-mode)
+  - [Filtering](#filtering)
   - [Scheduling with Cron](#scheduling-with-cron)
   - [Example Usage](#example-usage)
 - [License](#license)
 - [Contributing](#contributing)
 - [Support](#support)
+
+## Benefits
+
+- Automatically deletes old versions based on configurable filters
+- Can target specific subsets of objects by prefix  
+- Easy to customize schedule with cron jobs
+- Saves time compared to manually deleting old versions
+- Helps reduce storage costs by pruning unused old versions
 
 ## **Disclaimer**
 
@@ -34,6 +47,7 @@ Before running the script, ensure you have AWS CLI v2 and jq installed on your s
 Follow the official AWS guide to install AWS CLI v2 on your system or use the commands below:
 
 [AWS CLI v2 Installation](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
+
 ```sh
 # For Linux:
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -50,7 +64,7 @@ sudo apt-get update
 sudo apt-get install jq
 ```
 
-On Fedora/RHEL/CentOS:
+And for Fedora/RHEL/CentOS:
 
 ```sh
 sudo yum install jq
@@ -76,6 +90,17 @@ chmod +x s3prune.sh
 
 ## Usage
 
+The script supports various configuration options to control its behavior, and it can be run in interactive or unattended modes. Use the `--prefix` option to target a subset of objects within the bucket.
+
+### Configuration
+
+Customize the script's operation with command-line flags:
+
+```
+./s3prune.sh [--unattended] [--no-dry-run] [--bucket BUCKET] [--prefix PREFIX]
+            [--endpoint-url URL] [--max-keys MAXKEYS] 
+```
+
 ### Interactive Mode
 
 Run the script without arguments to enter interactive mode:
@@ -98,6 +123,16 @@ To disable dry run mode in unattended mode, use the `--no-dry-run` flag:
 ./s3prune.sh --unattended --no-dry-run --bucket "your-bucket" --prefix "your-prefix" --endpoint-url "your-endpoint-url" --max-keys 1000
 ```
 
+### Filtering
+
+Use the `--prefix` option to target a subset of objects in the bucket, e.g.:
+
+```
+--prefix folder1/subfolder/
+```
+
+The script deletes all old non-current object versions that match the prefix.
+
 ### Scheduling with Cron
 
 To schedule the script with cron, for example, to run at 2 AM daily:
@@ -108,7 +143,7 @@ To schedule the script with cron, for example, to run at 2 AM daily:
 
 ### Example Usage
 
-Here's an example of running the script in interactive mode with a dry run:
+An example of the script running in interactive mode with a dry run:
 
 ```sh
 debian@vps-xxx:~$ ./s3prune.sh 
@@ -131,7 +166,9 @@ Dry run: Would delete objects: {
   "Quiet": true
 }
 Deleted 2 old versions.
-Dry run enabled. No objects were actually deleted.
+Dry run
+
+ enabled. No objects were actually deleted.
 ```
 
 ## License
