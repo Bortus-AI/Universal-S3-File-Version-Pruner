@@ -80,14 +80,31 @@ if [ "$UNATTENDED" = false ]; then
   } > "$CONFIG_FILE"
 fi
 
+
 # Check for dependencies
 if ! command -v aws &>/dev/null; then
-  echo "Error: aws CLI is not installed." >&2
+  echo "Error: aws CLI is not installed. Please install it following the instructions at https://aws.amazon.com/cli/." >&2
   exit 1
 fi
 
 if ! command -v jq &>/dev/null; then
-  echo "Error: jq is not installed." >&2
+  echo "Error: jq is not installed. Please install it following the instructions at https://stedolan.github.io/jq/download/." >&2
+  exit 1
+fi
+
+# Validate configuration parameters
+if [ -z "$BUCKET" ]; then
+  echo "Error: Bucket name cannot be empty." >&2
+  exit 1
+fi
+
+if ! [[ "$ENDPOINT_URL" =~ ^https?:// ]]; then
+  echo "Error: Invalid endpoint URL. It should start with http:// or https://." >&2
+  exit 1
+fi
+
+if ! [[ "$MAX_KEYS" =~ ^[0-9]+$ ]]; then
+  echo "Error: Max keys should be a positive integer." >&2
   exit 1
 fi
 
