@@ -16,7 +16,7 @@ prompt_with_default() {
   local user_input
 
   if [ "$UNATTENDED" = false ]; then
-    read -p "$prompt_text [$default_value]: " user_input
+    read -r -p "$prompt_text [$default_value]: " user_input
     echo "${user_input:-$default_value}"
   else
     echo "$default_value"
@@ -45,7 +45,7 @@ if [ "$UNATTENDED" = false ]; then
   MAX_KEYS=$(prompt_with_default "Enter max keys to delete per batch (default 1000)" "${MAX_KEYS:-1000}")
   
   # Prompt for dry run mode with default value set to "y"
-  read -p "Enable dry run mode? (y/n) [y]: " DRY_RUN_INPUT
+  read -r -p "Enable dry run mode? (y/n) [y]: " DRY_RUN_INPUT
   if [ -z "$DRY_RUN_INPUT" ] || [ "$DRY_RUN_INPUT" = "y" ] || [ "$DRY_RUN_INPUT" = "Y" ]; then
     DRY_RUN=true
   else
@@ -61,11 +61,13 @@ PREFIX=$(echo "$PREFIX" | sed 's:^/*::;s:/*$:/:' | sed 's:/*$::')
 
 # Save the current configuration if not in unattended mode
 if [ "$UNATTENDED" = false ]; then
-  echo "BUCKET='$BUCKET'" > "$CONFIG_FILE"
-  echo "PREFIX='$PREFIX'" >> "$CONFIG_FILE"
-  echo "ENDPOINT_URL='$ENDPOINT_URL'" >> "$CONFIG_FILE"
-  echo "MAX_KEYS=$MAX_KEYS" >> "$CONFIG_FILE"
-  echo "DRY_RUN=$DRY_RUN" >> "$CONFIG_FILE"
+  {
+    echo "BUCKET='$BUCKET'"
+    echo "PREFIX='$PREFIX'"
+    echo "ENDPOINT_URL='$ENDPOINT_URL'"
+    echo "MAX_KEYS=$MAX_KEYS"
+    echo "DRY_RUN=$DRY_RUN"
+  } > "$CONFIG_FILE"
 fi
 
 # Check for dependencies
