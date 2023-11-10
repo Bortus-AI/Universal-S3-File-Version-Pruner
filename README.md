@@ -16,13 +16,14 @@ This utility script manages and deletes old versions of objects in an S3-compati
   - [Interactive Mode](#interactive-mode)
   - [Unattended Mode](#unattended-mode)
   - [Scheduling with Cron](#scheduling-with-cron)
+  - [Example Usage](#example-usage)
 - [License](#license)
 - [Contributing](#contributing)
 - [Support](#support)
 
 ## **Disclaimer**
 
-**IMPORTANT: Ensure you test the script in a safe environment to avoid any accidental data loss. Use the dry run mode initially to simulate the deletion process without actually removing any files. This feature helps you understand what the script will do before any changes affect your data.**
+**IMPORTANT: Ensure you test the script in a safe environment to avoid any accidental data loss.**
 
 ## Prerequisites
 
@@ -103,6 +104,36 @@ To schedule the script with cron, for example, to run at 2 AM daily:
 
 ```cron
 0 2 * * * /path/to/s3prune.sh --unattended --no-dry-run --bucket "your-bucket" --prefix "your-prefix" --endpoint-url "your-endpoint-url" --max-keys 1000
+```
+
+### Example Usage
+
+Here's an example of running the script in interactive mode with a dry run:
+
+```sh
+debian@vps-xxx:~$ ./s3prune.sh 
+Enter your bucket name [default-bucket]: 
+Enter your prefix (or hit enter for none) [default-prefix]: 
+Enter your endpoint URL [https://s3.default-endpoint.com]: 
+Enter max keys to delete per batch (default 1000) [1000]: 
+Enable dry run mode? (y/n) [y]: 
+Dry run: Would delete objects: {
+  "Objects": [
+    {
+      "Key": "example-folder/example-file.nfo",
+      "VersionId": "4_zxxxxxxxxxxxxxxx_fxxxxxxxxxxxxxxxb6_d2023xxxx_mxxxxxx_c005_vxxxxxxx_txxxx_u0xxxxxxxxxxx"
+    },
+    {
+      "Key": "another-folder/another-file.nfo",
+      "VersionId": "4_zxxxxxxxxxxxxxxx_fxxxxxxxxxxxxxxxd3_d2023xxxx_mxxxxxx_c005_vxxxxxxx_txxxx_u0xxxxxxxxxxx"
+    }
+  ],
+  "Quiet": true
+}
+Deleted 2 old versions.
+Dry run
+
+ enabled. No objects were actually deleted.
 ```
 
 ## License
