@@ -1,6 +1,8 @@
 #!/bin/bash
 
 CONFIG_FILE="$HOME/.s3cleanupconfig"
+UNATTENDED=false
+DRY_RUN=true
 
 # Load previous configuration if it exists
 if [ -f "$CONFIG_FILE" ]; then
@@ -13,31 +15,58 @@ prompt_with_default() {
   local default_value="$2"
   local user_input
 
-  read -p "$prompt_text [$default_value]: " user_input
-  echo "${user_input:-$default_value}"
+  if [ "$UNATTENDED" = false ]; then
+    read -p "$prompt_text [$default_value]: " user_input
+    echo "${user_input:-$default_value}"
+  else
+    echo "$default_value"
+  fi
 }
 
-# Prompt for user input with the option to use previously saved data
-BUCKET=$(prompt_with_default "Enter your bucket name" "$BUCKET")
-PREFIX=$(prompt_with_default "Enter your prefix (or hit enter for none)" "$PREFIX")
-ENDPOINT_URL=$(prompt_with_default "Enter your endpoint URL" "$ENDPOINT_URL")
-MAX_KEYS=$(prompt_with_default "Enter max keys to delete per batch (default 1000)" "${MAX_KEYS:-1000}")
+# Parse command-line arguments
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    --unattended) UNATTENDED=true ;;
+    --no-dry-run) DRY_RUN=false ;;
+    --bucket) BUCKET="$2"; shift ;;
+    --prefix) PREFIX="$2"; shift ;;
+    --endpoint-url) ENDPOINT_URL="$2"; shift ;;
+    --max-keys) MAX_KEYS="$2"; shift ;;
+    *) echo "Unknown parameter passed: $1"; exit 1 ;;
+  esac
+  shift
+done
 
-# Prompt for dry run mode with default value
-default_dry_run="y" # Defaulting to yes for dry run unless the user types "n"
-read -p "Disable dry run mode? (y/n) [$default_dry_run]: " DRY_RUN_INPUT
-if [ -z "$DRY_RUN_INPUT" ] || [ "$DRY_RUN_INPUT" = "y" ] || [ "$DRY_RUN_INPUT" = "Y" ]; then
-  DRY_RUN=true
-else
-  DRY_RUN=false  
+# If not in unattended mode, prompt for user input with the option to use previously saved data
+if [ "$UNATTENDED" = false ]; then
+  BUCKET=$(prompt_with_default "Enter your bucket name" "$BUCKET")
+  PREFIX=$(prompt_with_default "Enter your prefix (or hit enter for none)" "$PREFIX")
+  ENDPOINT_URL=$(prompt_with_default "Enter your endpoint URL" "$ENDPOINT_URL")
+  MAX_KEYS=$(prompt_with_default "Enter max keys to delete per batch (default 1000)" "${MAX_KEYS:-1000}")
+  
+  # Prompt for dry run mode with default value set to "y"
+  read -p "Enable dry run mode? (y/n) [y]: " DRY_RUN_INPUT
+  if [ -z "$DRY_RUN_INPUT" ] || [ "$DRY_RUN_INPUT" = "y" ] || [ "$DRY_RUN_INPUT" = "Y" ]; then
+    DRY_RUN=true
+  else
+    DRY_RUN=false  
+  fi
 fi
 
-# Save the current configuration
-echo "BUCKET='$BUCKET'" > "$CONFIG_FILE"
-echo "PREFIX='$PREFIX'" >> "$CONFIG_FILE"
-echo "ENDPOINT_URL='$ENDPOINT_URL'" >> "$CONFIG_FILE"
-echo "MAX_KEYS=$MAX_KEYS" >> "$CONFIG_FILE"
-echo "DRY_RUN=$DRY_RUN" >> "$CONFIG_FILE"
+# Normalize values
+MAX_KEYS=${MAX_KEYS:-1000}
+
+# Normalize PREFIX to ensure it ends with a '/' but does not start with one
+PREFIX=$(echo "$PREFIX" | sed 's:^/*::;s:/*$:/:' | sed 's:/*$::')
+
+# Save the current configuration if not in unattended mode
+if [ "$UNATTENDED" = false ]; then
+  echo "BUCKET='$BUCKET'" > "$CONFIG_FILE"
+  echo "PREFIX='$PREFIX'" >> "$CONFIG_FILE"
+  echo "ENDPOINT_URL='$ENDPOINT_URL'" >> "$CONFIG_FILE"
+  echo "MAX_KEYS=$MAX_KEYS" >> "$CONFIG_FILE"
+  echo "DRY_RUN=$DRY_RUN" >> "$CONFIG_FILE"
+fi
 
 # Check for dependencies
 if ! command -v aws &>/dev/null; then
@@ -49,9 +78,6 @@ if ! command -v jq &>/dev/null; then
   echo "Error: jq is not installed." >&2
   exit 1
 fi
-
-# Normalize PREFIX to ensure it ends with a '/' but does not start with one
-PREFIX=$(echo "$PREFIX" | sed 's:^/*::;s:/*$:/:' | sed 's:/*$::')
 
 # Function to delete a batch of versions
 delete_batch() {
