@@ -133,7 +133,11 @@ process_deletion() {
     delete_batch "$batch"
   done
 
-  echo "Deleted $num_versions old versions."
+  if [ "$DRY_RUN" = true ]; then
+    echo "Dry run: Would delete $num_versions old versions."
+  else
+    echo "Deleted $num_versions old versions."
+  fi
 }
 
 # Execute the script with dry run logic
