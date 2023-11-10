@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="./public/logo.png" alt="Bortus AI logo" width="200px">
+</p>
+
 # Universal S3 File Version Pruner 
 
 [![License](https://img.shields.io/github/license/navyfighter12/S3Prune-UniversalFileVersionTool?label=license&style=flat-square)](LICENSE)
