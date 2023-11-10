@@ -1,7 +1,3 @@
-Certainly! Here's the revised structure for your README with the suggested changes:
-
----
-
 # Universal S3 File Version Pruner
 
 This script is designed to automate the deletion of outdated file versions in S3-compatible storage buckets, streamlining storage space optimization and cost reduction.
