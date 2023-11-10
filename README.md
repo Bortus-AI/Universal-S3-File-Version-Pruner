@@ -2,13 +2,13 @@
 
 ## Introduction
 
-A utility script for managing and deleting old versions of objects in an S3-compatible bucket, specifically designed and tested with Backblaze B2 and AWS CLI v2, but should work with any S3-compatible service.
+This utility script manages and deletes old versions of objects in an S3-compatible bucket. It is specifically designed for situations where versioning control cannot be disabled, such as with Backblaze B2. This script helps you delete versions more frequently than the default settings, aiding in better management of your storage space.
 
 ## Contents
 
 - [Introduction](#introduction)
 - [Prerequisites](#prerequisites)
-- [Disclaimer](#disclaimer)
+- [**Disclaimer**](#disclaimer)
 - [Installing AWS CLI v2](#installing-aws-cli-v2)
 - [Installing jq](#installing-jq)
 - [Downloading the Script](#downloading-the-script)
@@ -20,15 +20,17 @@ A utility script for managing and deleting old versions of objects in an S3-comp
 - [Contributing](#contributing)
 - [Support](#support)
 
-## Disclaimer
-**Ensure you test the script in a safe environment to avoid any accidental data loss.**
+## **Disclaimer**
+
+**IMPORTANT: Ensure you test the script in a safe environment to avoid any accidental data loss. Use the dry run mode initially to simulate the deletion process without actually removing any files. This feature helps you understand what the script will do before any changes affect your data.**
+
 ## Prerequisites
 
-Before running the script, ensure you have AWS CLI v2 and jq installed on your system.
+Before running the script, ensure you have AWS CLI v2 and jq installed on your system, and they are the latest versions or the versions compatible with the script.
 
 ### Installing AWS CLI v2
 
-Follow the official AWS guide to install AWS CLI v2 on your system or use the commands bellow:
+Follow the official AWS guide to install AWS CLI v2 on your system or use the commands below:
 
 [AWS CLI v2 Installation](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
 ```sh
@@ -37,36 +39,36 @@ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip
 unzip awscliv2.zip
 sudo ./aws/install
 ```
-Configure your AWS credentials to allow the script to interact with your S3-compatible service:
-
-```bash
-aws configure
-```
-Enter your AWS Access Key, Secret Key, and the default region when prompted.
 
 ### Installing jq
 
 Install jq using your system's package manager. For example, on Ubuntu/Debian:
 
-```bash
+```sh
 sudo apt-get update
 sudo apt-get install jq
 ```
 
 On Fedora/RHEL/CentOS:
 
-```bash
+```sh
 sudo yum install jq
 ```
 
 **Verify Installation**
-Check the installations with `aws --version` and `jq --version`.
+
+Check the installations with:
+
+```sh
+aws --version
+jq --version
+```
 
 ## Downloading the Script
 
 To download the script, use the following `wget` command:
 
-```bash
+```sh
 wget https://raw.githubusercontent.com/navyfighter12/S3Prune-UniversalFileVersionTool/main/s3prune.sh
 chmod +x s3prune.sh
 ```
@@ -77,51 +79,40 @@ chmod +x s3prune.sh
 
 Run the script without arguments to enter interactive mode:
 
-```bash
+```sh
 ./s3prune.sh
 ```
 
-You will be prompted to enter:
-
-- Bucket name: The name of the S3 bucket.
-- Prefix: The prefix for the S3 objects (optional).
-- Endpoint URL: The endpoint URL for the S3 API.
-- Max keys: The maximum number of keys to delete per batch (default is 1000).
-- Dry run mode: Choose whether to perform a dry run (default is 'y').
-
-Settings are saved in a configuration file for future runs.
-
 ### Unattended Mode
 
-Run the script in unattended mode using the `--unattended` flag with the necessary parameters:
+For unattended mode, pass the `--unattended` flag along with necessary parameters:
 
-```bash
+```sh
 ./s3prune.sh --unattended --bucket "your-bucket" --prefix "your-prefix" --endpoint-url "your-endpoint-url" --max-keys 1000
 ```
 
 To disable dry run mode in unattended mode, use the `--no-dry-run` flag:
 
-```bash
+```sh
 ./s3prune.sh --unattended --no-dry-run --bucket "your-bucket" --prefix "your-prefix" --endpoint-url "your-endpoint-url" --max-keys 1000
 ```
 
 ### Scheduling with Cron
 
-Schedule the script to run automatically with cron. For example, to run at 2 AM daily:
+To schedule the script with cron, for example, to run at 2 AM daily:
 
 ```cron
 0 2 * * * /path/to/s3prune.sh --unattended --no-dry-run --bucket "your-bucket" --prefix "your-prefix" --endpoint-url "your-endpoint-url" --max-keys 1000
 ```
 
-Provide the full path to the script and adjust parameters as necessary.
-
 ## License
-This project is licensed under the Apache 2.0 License. See [LICENSE](LICENSE) for the full license text.
+
+This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
 
 ## Contributing
 
-Feel free to submit pull requests with enhancements or fixes.
+Contributions are welcome! Please submit pull requests with enhancements or fixes.
 
 ## Support
 
-For issues or assistance, please open an issue on the GitHub repository page.
+For assistance or to report issues, please open an issue on the GitHub repository page.
