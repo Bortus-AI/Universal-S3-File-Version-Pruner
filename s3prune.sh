@@ -1,10 +1,10 @@
 #!/bin/bash
 
+# Constants
 CONFIG_FILE="$HOME/.s3cleanupconfig"
-UNATTENDED=false
-DRY_RUN=true
+DEFAULT_MAX_KEYS=1000
 
-# Custom error handling function
+# Functions
 handle_error() {
   local error_message="$1"
   local exit_code="${2:-1}"
@@ -12,7 +12,6 @@ handle_error() {
   exit "$exit_code"
 }
 
-# Function to validate required parameters in unattended mode
 validate_required_parameters_unattended() {
   local missing_params=()
   [ -z "$BUCKET" ] && missing_params+=("bucket")
@@ -20,10 +19,10 @@ validate_required_parameters_unattended() {
   [ ${#missing_params[@]} -gt 0 ] && handle_error "Missing required parameters in unattended mode: ${missing_params[*]}."
 
   # Default MAX_KEYS if not provided
-  MAX_KEYS=${MAX_KEYS:-1000}
+  MAX_KEYS=${MAX_KEYS:-DEFAULT_MAX_KEYS}
 }
 
-# Parse command-line arguments
+# Main script
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     --unattended) UNATTENDED=true ;;
@@ -37,7 +36,6 @@ while [[ "$#" -gt 0 ]]; do
   shift
 done
 
-# If unattended, validate parameters without loading the previous configuration
 if [ "$UNATTENDED" = true ]; then
   validate_required_parameters_unattended
 else
@@ -45,17 +43,17 @@ else
   [ -f "$CONFIG_FILE" ] && source "$CONFIG_FILE"
 
   # Prompt for user input for each configuration item
-  read -r -p "Enter your bucket name [$BUCKET]: " input
-  BUCKET=${input:-$BUCKET}
+  read -r -p "Enter your bucket name [$BUCKET]: " input_bucket
+  BUCKET=${input_bucket:-$BUCKET}
 
-  read -r -p "Enter your prefix (or hit enter for none) [$PREFIX]: " input
-  PREFIX=${input:-$PREFIX}
+  read -r -p "Enter your prefix (or hit enter for none) [$PREFIX]: " input_prefix
+  PREFIX=${input_prefix:-$PREFIX}
 
-  read -r -p "Enter your endpoint URL [$ENDPOINT_URL]: " input
-  ENDPOINT_URL=${input:-$ENDPOINT_URL}
+  read -r -p "Enter your endpoint URL [$ENDPOINT_URL]: " input_endpoint_url
+  ENDPOINT_URL=${input_endpoint_url:-$ENDPOINT_URL}
 
-  read -r -p "Enter max keys to delete per batch (default 1000) [$MAX_KEYS]: " input
-  MAX_KEYS=${input:-${MAX_KEYS:-1000}}
+  read -r -p "Enter max keys to delete per batch (default 1000) [$MAX_KEYS]: " input_max_keys
+  MAX_KEYS=${input_max_keys:-${MAX_KEYS:-DEFAULT_MAX_KEYS}}
 
   # Prompt for dry run mode with default value set to "y"
   read -r -p "Enable dry run mode? (y/n) [y]: " DRY_RUN_INPUT
