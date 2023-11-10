@@ -6,6 +6,12 @@ CONFIG_FILE="$HOME/.s3cleanupconfig"
 UNATTENDED=false
 DRY_RUN=true
 
+# Custom error function
+error_exit() {
+  echo "$1" >&2
+  exit 1
+}
+
 # Function to validate required parameters in unattended mode
 validate_required_parameters_unattended() {
   local missing_params=()
@@ -16,8 +22,7 @@ validate_required_parameters_unattended() {
     missing_params+=("endpoint-url")
   fi
   if [ ${#missing_params[@]} -gt 0 ]; then
-    echo "Error: Missing required parameters in unattended mode: ${missing_params[*]}." >&2
-    exit 1
+    error_exit "Error: Missing required parameters in unattended mode: ${missing_params[*]}."
   fi
   MAX_KEYS=${MAX_KEYS:-1000} # Default MAX_KEYS if not provided
 }
@@ -25,8 +30,7 @@ validate_required_parameters_unattended() {
 # Function to check for dependencies
 check_dependency() {
   if ! command -v "$1" &>/dev/null; then
-    echo "Error: $1 is not installed. Please install it." >&2
-    exit 1
+    error_exit "Error: $1 is not installed. Please install it."
   fi
 }
 
@@ -39,7 +43,7 @@ while [[ "$#" -gt 0 ]]; do
     --prefix) PREFIX="$2"; shift ;;
     --endpoint-url) ENDPOINT_URL="$2"; shift ;;
     --max-keys) MAX_KEYS="$2"; shift ;;
-    *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    *) error_exit "Unknown parameter passed: $1"; exit 1 ;;
   esac
   shift
 done
@@ -54,20 +58,21 @@ else
   fi
   
   # Prompt for user input for each configuration item
-  read -r -p "Enter your bucket name [$BUCKET]: " input
+  echo "Please enter your configuration details:"
+  read -r -p "Bucket name (previous: $BUCKET): " input
   BUCKET=${input:-$BUCKET}
   
-  read -r -p "Enter your prefix (or hit enter for none) [$PREFIX]: " input
+  read -r -p "Prefix (leave empty for none, previous: $PREFIX): " input
   PREFIX=${input:-$PREFIX}
   
-  read -r -p "Enter your endpoint URL [$ENDPOINT_URL]: " input
+  read -r -p "Endpoint URL (previous: $ENDPOINT_URL): " input
   ENDPOINT_URL=${input:-$ENDPOINT_URL}
   
-  read -r -p "Enter max keys to delete per batch (default 1000) [$MAX_KEYS]: " input
+  read -r -p "Max keys to delete per batch (default 1000, previous: $MAX_KEYS): " input
   MAX_KEYS=${input:-${MAX_KEYS:-1000}}
   
   # Prompt for dry run mode with default value set to "y"
-  read -r -p "Enable dry run mode? (y/n) [y]: " DRY_RUN_INPUT
+  read -r -p "Enable dry run mode? (y/n, default: y): " DRY_RUN_INPUT
   DRY_RUN=$([[ -z "$DRY_RUN_INPUT" || "$DRY_RUN_INPUT" =~ ^[yY]$ ]] && echo true || echo false)
 fi
 
@@ -87,6 +92,7 @@ if [ "$UNATTENDED" = false ]; then
     echo "MAX_KEYS=$MAX_KEYS"
     echo "DRY_RUN=$DRY_RUN"
   } > "$CONFIG_FILE"
+  echo "Configuration saved for future use."
 fi
 
 # Check for dependencies
@@ -95,18 +101,15 @@ check_dependency "jq"
 
 # Validate configuration parameters
 if [ -z "$BUCKET" ]; then
-  echo "Error: Bucket name cannot be empty." >&2
-  exit 1
+  error_exit "Error: Bucket name cannot be empty."
 fi
 
 if ! [[ "$ENDPOINT_URL" =~ ^https?:// ]]; then
-  echo "Error: Invalid endpoint URL. It should start with http:// or https://." >&2
-  exit 1
+  error_exit "Error: Invalid endpoint URL. It should start with http:// or https://."
 fi
 
 if ! [[ "$MAX_KEYS" =~ ^[0-9]+$ ]]; then
-  echo "Error: Max keys should be a positive integer." >&2
-  exit 1
+  error_exit "Error: Max keys should be a positive integer."
 fi
 
 # Function to delete a batch of versions
@@ -131,13 +134,11 @@ delete_batch() {
 # Function to process deletion or dry run
 process_deletion() {
   if ! versions=$(aws s3api list-object-versions --bucket "$BUCKET" --prefix "$PREFIX" --endpoint-url "$ENDPOINT_URL"); then
-    echo "Error: Failed to list object versions." >&2
-    exit 1
+    error_exit "Error: Failed to list object versions."
   fi
 
   if ! versions_to_delete=$(echo "$versions" | jq -c '[.Versions[]? | select(.IsLatest | not) | {Key:.Key, VersionId:.VersionId}]'); then
-    echo "Error: Invalid JSON data from AWS or no versions available for prefix '$PREFIX'." >&2
-    exit 1
+    error_exit "Error: Invalid JSON data from AWS or no versions available for prefix '$PREFIX'."
   fi
 
   num_versions=$(echo "$versions_to_delete" | jq -r 'length')
