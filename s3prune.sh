@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 CONFIG_FILE="$HOME/.s3cleanupconfig"
 UNATTENDED=false
 DRY_RUN=true
@@ -18,6 +20,14 @@ validate_required_parameters_unattended() {
     exit 1
   fi
   MAX_KEYS=${MAX_KEYS:-1000} # Default MAX_KEYS if not provided
+}
+
+# Function to check for dependencies
+check_dependency() {
+  if ! command -v "$1" &>/dev/null; then
+    echo "Error: $1 is not installed. Please install it." >&2
+    exit 1
+  fi
 }
 
 # Parse command-line arguments
@@ -61,7 +71,6 @@ else
   DRY_RUN=$([[ -z "$DRY_RUN_INPUT" || "$DRY_RUN_INPUT" =~ ^[yY]$ ]] && echo true || echo false)
 fi
 
-
 # Normalize PREFIX to ensure it does not start with a slash and ends with one if not empty
 PREFIX="${PREFIX#/}"   # Remove leading slashes
 PREFIX="${PREFIX%/}"   # Remove trailing slashes, if present
@@ -80,17 +89,9 @@ if [ "$UNATTENDED" = false ]; then
   } > "$CONFIG_FILE"
 fi
 
-
 # Check for dependencies
-if ! command -v aws &>/dev/null; then
-  echo "Error: aws CLI is not installed. Please install it following the instructions at https://aws.amazon.com/cli/." >&2
-  exit 1
-fi
-
-if ! command -v jq &>/dev/null; then
-  echo "Error: jq is not installed. Please install it following the instructions at https://stedolan.github.io/jq/download/." >&2
-  exit 1
-fi
+check_dependency "aws"
+check_dependency "jq"
 
 # Validate configuration parameters
 if [ -z "$BUCKET" ]; then
