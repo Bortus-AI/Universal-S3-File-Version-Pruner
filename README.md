@@ -84,7 +84,7 @@ jq --version
 To download the script, use the following `wget` command:
 
 ```sh
-wget https://raw.githubusercontent.com/navyfighter12/S3Prune-UniversalFileVersionTool/main/s3prune.sh
+wget https://github.com/Bortus-AI/Universal-S3-File-Version-Pruner/raw/main/s3prune.sh
 chmod +x s3prune.sh
 ```
 
