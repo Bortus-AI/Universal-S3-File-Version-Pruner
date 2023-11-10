@@ -4,23 +4,20 @@ CONFIG_FILE="$HOME/.s3cleanupconfig"
 UNATTENDED=false
 DRY_RUN=true
 
-# Load previous configuration if it exists
-if [ -f "$CONFIG_FILE" ]; then
-  source "$CONFIG_FILE"
-fi
-
-# Function to prompt for input with a default value
-prompt_with_default() {
-  local prompt_text="$1"
-  local default_value="$2"
-  local user_input
-
-  if [ "$UNATTENDED" = false ]; then
-    read -r -p "$prompt_text [$default_value]: " user_input
-    echo "${user_input:-$default_value}"
-  else
-    echo "$default_value"
+# Function to validate required parameters in unattended mode
+validate_required_parameters_unattended() {
+  local missing_params=()
+  if [ -z "$BUCKET" ]; then
+    missing_params+=("bucket")
   fi
+  if [ -z "$ENDPOINT_URL" ]; then
+    missing_params+=("endpoint-url")
+  fi
+  if [ ${#missing_params[@]} -gt 0 ]; then
+    echo "Error: Missing required parameters in unattended mode: ${missing_params[*]}." >&2
+    exit 1
+  fi
+  MAX_KEYS=${MAX_KEYS:-1000} # Default MAX_KEYS if not provided
 }
 
 # Parse command-line arguments
@@ -37,27 +34,40 @@ while [[ "$#" -gt 0 ]]; do
   shift
 done
 
-# If not in unattended mode, prompt for user input with the option to use previously saved data
-if [ "$UNATTENDED" = false ]; then
-  BUCKET=$(prompt_with_default "Enter your bucket name" "$BUCKET")
-  PREFIX=$(prompt_with_default "Enter your prefix (or hit enter for none)" "$PREFIX")
-  ENDPOINT_URL=$(prompt_with_default "Enter your endpoint URL" "$ENDPOINT_URL")
-  MAX_KEYS=$(prompt_with_default "Enter max keys to delete per batch (default 1000)" "${MAX_KEYS:-1000}")
+# If unattended, validate parameters without loading the previous configuration
+if [ "$UNATTENDED" = true ]; then
+  validate_required_parameters_unattended
+else
+  # Load previous configuration if it exists
+  if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+  fi
+  
+  # Prompt for user input for each configuration item
+  read -r -p "Enter your bucket name [$BUCKET]: " input
+  BUCKET=${input:-$BUCKET}
+  
+  read -r -p "Enter your prefix (or hit enter for none) [$PREFIX]: " input
+  PREFIX=${input:-$PREFIX}
+  
+  read -r -p "Enter your endpoint URL [$ENDPOINT_URL]: " input
+  ENDPOINT_URL=${input:-$ENDPOINT_URL}
+  
+  read -r -p "Enter max keys to delete per batch (default 1000) [$MAX_KEYS]: " input
+  MAX_KEYS=${input:-${MAX_KEYS:-1000}}
   
   # Prompt for dry run mode with default value set to "y"
   read -r -p "Enable dry run mode? (y/n) [y]: " DRY_RUN_INPUT
-  if [ -z "$DRY_RUN_INPUT" ] || [ "$DRY_RUN_INPUT" = "y" ] || [ "$DRY_RUN_INPUT" = "Y" ]; then
-    DRY_RUN=true
-  else
-    DRY_RUN=false  
-  fi
+  DRY_RUN=$([[ -z "$DRY_RUN_INPUT" || "$DRY_RUN_INPUT" =~ ^[yY]$ ]] && echo true || echo false)
 fi
 
-# Normalize values
-MAX_KEYS=${MAX_KEYS:-1000}
 
-# Normalize PREFIX to ensure it ends with a '/' but does not start with one
-PREFIX=$(echo "$PREFIX" | sed 's:^/*::;s:/*$:/:' | sed 's:/*$::')
+# Normalize PREFIX to ensure it does not start with a slash and ends with one if not empty
+PREFIX="${PREFIX#/}"   # Remove leading slashes
+PREFIX="${PREFIX%/}"   # Remove trailing slashes, if present
+if [ -n "$PREFIX" ]; then
+  PREFIX="$PREFIX/"
+fi
 
 # Save the current configuration if not in unattended mode
 if [ "$UNATTENDED" = false ]; then
