@@ -131,9 +131,7 @@ Dry run: Would delete objects: {
   "Quiet": true
 }
 Deleted 2 old versions.
-Dry run
-
- enabled. No objects were actually deleted.
+Dry run enabled. No objects were actually deleted.
 ```
 
 ## License
