@@ -36,7 +36,7 @@ This utility script manages and deletes old versions of objects in an S3-compati
 
 ## **Disclaimer**
 
-**IMPORTANT: Ensure you test the script in a safe environment to avoid any accidental data loss.**
+### **IMPORTANT: Ensure you test the script in a safe environment to avoid any accidental data loss.**
 
 ## Prerequisites
 
